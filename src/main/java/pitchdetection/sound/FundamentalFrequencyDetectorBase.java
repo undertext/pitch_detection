@@ -11,7 +11,7 @@ abstract class FundamentalFrequencyDetectorBase implements FundamentalFrequencyD
     /**
      * Number of bytes to read from audio input and pass to frequency detection algorithm.
      */
-    private int dataChunkSize;
+    protected int dataChunkSize;
 
     /**
      * Audio input to read data from.
