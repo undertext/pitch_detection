@@ -19,7 +19,7 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
     /**
      * Imaginary part of FFT result.
      */
-    public float[] imag;
+    public float[] imaginary;
 
     /**
      * Spectrum result.
@@ -45,10 +45,15 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
         this.audioInput = audioInput;
         this.dataChunkSize = dataChunkSize;
         real = new float[dataChunkSize];
-        imag = new float[dataChunkSize];
+        imaginary = new float[dataChunkSize];
         spectrum = new float[dataChunkSize];
     }
 
+
+    @Override
+    public void applyWindowFunction(byte[] data) {
+        // Do nothing.
+    }
 
     @Override
     public float[][] runFourierTransformation() {
@@ -59,15 +64,15 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
             this.real[k] = this.input[k];
         }
 
-        float[][] res = new float[2][input.length];
-        res[0] = this.real;
-        res[1] = this.imag;
+        float[][] result = new float[2][input.length];
+        result[0] = this.real;
+        result[1] = this.imaginary;
 
-        res = this.doFFT(res);
-        this.real = res[0];
-        this.imag = res[1];
+        result = this.doFFT(result);
+        this.real = result[0];
+        this.imaginary = result[1];
 
-        return new float[][]{real, imag};
+        return new float[][]{real, imaginary};
     }
 
     /**
@@ -124,7 +129,7 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
     @Override
     public float[] generateSpectrum() {
         for (int i = 0; i < spectrum.length; i++) {
-            spectrum[i] = (float) Math.sqrt(real[i] * real[i] + imag[i] * imag[i]);
+            spectrum[i] = (float) Math.sqrt(real[i] * real[i] + imaginary[i] * imaginary[i]);
         }
         return spectrum;
     }

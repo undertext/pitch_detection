@@ -6,45 +6,52 @@ package pitchdetection.sound.interfaces;
 public interface FourierBasedFundamentalFrequencyDetector extends FundamentalFrequencyDetector {
 
     /**
+     * Apply window function to the input data.
+     *
+     * @param data Input data.
+     */
+    void applyWindowFunction(byte[] data);
+
+    /**
      * Runs actual fourier transform.
      *
      * @return Fourier transformed data (real and imagine parts).
      */
-    public float[][] runFourierTransformation();
+    float[][] runFourierTransformation();
 
     /**
      * Generate frequency spectrum on fourier transformed data.
      *
      * @return Frequency spectrum .
      */
-    public float[] generateSpectrum();
+    float[] generateSpectrum();
 
     /**
      * Calculate spectrum picks.
      *
      * @return Spectrum picks.
      */
-    public int[] calculateSpectrumPicks();
+    int[] calculateSpectrumPicks();
 
     /**
      * Calculate dominant frequencies.
      *
      * @return Dominant frequencies.
      */
-    public float[] calculateDominantFrequencies();
+    float[] calculateDominantFrequencies();
 
     /**
      * Get spectrum of input data.
      *
      * @return Spectrum of input data.
      */
-    public float[] getSpectrum();
+    float[] getSpectrum();
 
     /**
      * Get local maxima indexes from spectrum array.
      *
      * @return Local maxima indexes from spectrum array.
      */
-    public int[] getSpectralPicksIndexes();
+    int[] getSpectralPicksIndexes();
 
 }
