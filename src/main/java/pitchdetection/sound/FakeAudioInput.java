@@ -25,11 +25,11 @@ public class FakeAudioInput implements AudioInputInterface {
     private static final int SOUND_FREQUENCY = 600;
 
     /**
-     * Private constructor to not allow create object with "new" keyword.
+     * FakeAudioInput constructor.
      *
      * @param frequency Frequency of fake signal.
      */
-    private FakeAudioInput(int frequency) {
+    public FakeAudioInput(int frequency) {
         this.currentFrequency = frequency;
     }
 
