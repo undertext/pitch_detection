@@ -1,0 +1,13 @@
+apply plugin: 'java'
+
+dependencies {
+    testCompile group: 'org.freemarker', name: 'freemarker', version: '2.3.20'
+    testCompile 'junit:junit:4.12'
+    testCompile "org.mockito:mockito-core:2.+"
+}
+
+repositories {
+    maven {
+        url "https://plugins.gradle.org/m2/"
+    }
+}
