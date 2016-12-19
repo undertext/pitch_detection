@@ -49,4 +49,6 @@ public interface FundamentalFrequencyDetector {
      */
     float getFundamentalFrequency();
 
+    public float getCurrentFundamentalFrequency();
+
 }

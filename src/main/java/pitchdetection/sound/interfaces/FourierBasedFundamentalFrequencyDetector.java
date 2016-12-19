@@ -8,16 +8,15 @@ public interface FourierBasedFundamentalFrequencyDetector extends FundamentalFre
     /**
      * Apply window function to the input data.
      *
-     * @param data Input data.
      */
-    void applyWindowFunction(byte[] data);
+    void applyWindowFunction();
 
     /**
      * Runs actual fourier transform.
      *
      * @return Fourier transformed data (real and imagine parts).
      */
-    float[][] runFourierTransformation();
+    float[][] runFourierTransformation(boolean applyWindowFunction);
 
     /**
      * Generate frequency spectrum on fourier transformed data.
@@ -32,13 +31,6 @@ public interface FourierBasedFundamentalFrequencyDetector extends FundamentalFre
      * @return Spectrum picks.
      */
     int[] calculateSpectrumPicks();
-
-    /**
-     * Calculate dominant frequencies.
-     *
-     * @return Dominant frequencies.
-     */
-    float[] calculateDominantFrequencies();
 
     /**
      * Get spectrum of input data.

@@ -37,6 +37,11 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
     public float[] dominantFrequencies;
 
     /**
+     * The fundamental frequency.
+     */
+    public float fundamentalFrequency;
+
+    /**
      * Create new FFT frequency detector.
      *
      * @param audioInput Audio input to read data from.
@@ -51,17 +56,22 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
 
 
     @Override
-    public void applyWindowFunction(byte[] data) {
-        // Do nothing.
+    public void applyWindowFunction() {
+
+        for (int k = 0; k < input.length; k += 1) {
+
+            this.real[k] = this.real[k] * (float) (0.54f - 0.46f * Math.cos(2 * Math.PI * k / (input.length - 1)));
+        }
     }
 
     @Override
-    public float[][] runFourierTransformation() {
-
+    public float[][] runFourierTransformation(boolean applyWindowFunction) {
         this.input = this.audioInput.readData(dataChunkSize);
-
         for (int k = 0; k < input.length; k += 1) {
             this.real[k] = this.input[k];
+        }
+        if (applyWindowFunction) {
+            this.applyWindowFunction();
         }
 
         float[][] result = new float[2][input.length];
@@ -136,9 +146,9 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
 
     @Override
     public int[] calculateSpectrumPicks() {
-        int delta = 20;
-        int lookahead = 10;
-        List<Integer> maxPeaks = new ArrayList<Integer>();
+        int delta = 50;
+        int lookahead = 4;
+        List<Integer> maxPeaks = new ArrayList();
         boolean findMax = true;
 
         float maxCandidate = Float.MIN_VALUE;
@@ -160,7 +170,9 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
             if (this.spectrum[i] < maxCandidate - delta && findMax) {
 
                 if (getMax(Arrays.copyOfRange(this.spectrum, i, i + lookahead)) < maxCandidate) {
-                    maxPeaks.add(pos);
+                    if (spectrum[pos] > 50) {
+                        maxPeaks.add(pos);
+                    }
                     findMax = false;
                     maxCandidate = Float.MAX_VALUE;
                     minCandidate = Float.MAX_VALUE;
@@ -189,6 +201,11 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
 
         }
         int[] maxPeaksArray = new int[maxPeaks.size()];
+
+        if (maxPeaks.size() > 0 && maxPeaks.get(0) <= 5) {
+            maxPeaks.remove(0);
+        }
+
         for (int i = 0; i < maxPeaks.size(); i++) {
             maxPeaksArray[i] = maxPeaks.get(i);
         }
@@ -236,31 +253,51 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
         return min;
     }
 
+    private boolean isFundamental(int spectralPick, int funt, List<Integer> entry) {
+        int last = entry.get(entry.size() - 1);
+        if ( Math.abs(spectralPick - last - funt) <= 1 ||  Math.abs(spectralPick - last - 2 * funt ) <=  1) {
+            return true;
+        }
+
+        return false;
+    }
+
     private float calculateFundamentalFrequency() {
-        Map<Integer, Integer> some = new LinkedHashMap<Integer, Integer>();
+        Map<Integer, List<Integer>> fundamentalsMap = new LinkedHashMap();
         for (int spectralPick : spectralPicksIndexes) {
-            boolean b = false;
-            for (int f : some.keySet()) {
-                if ((float) spectralPick % f <= 1 || (float) (spectralPick + 1) % f <= 1) {
-                    some.put(f, some.get(f) + 1);
-                    b = true;
-                    break;
+            boolean isFundamentalFound = false;
+            for (int fundamental : fundamentalsMap.keySet()) {
+                //   if ((float) spectralPick % fundamental <= 1 || (float) (spectralPick + 1) % fundamental <= 1) {
+                if (isFundamental(spectralPick, fundamental, fundamentalsMap.get(fundamental))) {
+                    fundamentalsMap.get(fundamental).add(spectralPick);
+                    isFundamentalFound = true;
+                    //    break;
                 }
             }
-            if (!b) {
-                some.put(spectralPick, 1);
+
+            if (!isFundamentalFound) {
+
+                if (spectralPick < 30 && spectralPick > 10) {
+                    fundamentalsMap.put(spectralPick / 2 , new ArrayList());
+                    fundamentalsMap.get(spectralPick / 2).add(spectralPick/2);
+                    fundamentalsMap.get(spectralPick / 2).add(spectralPick);
+                }
+
+                fundamentalsMap.put(spectralPick , new ArrayList());
+                fundamentalsMap.get(spectralPick).add(spectralPick);
             }
         }
 
-
-        Map.Entry<Integer, Integer> maxEntry = null;
-        System.out.println(some);
-        for (Map.Entry<Integer, Integer> entry : some.entrySet()) {
-            if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
+        Map.Entry<Integer, List<Integer>> maxEntry = null;
+        for (Map.Entry<Integer, List<Integer>> entry : fundamentalsMap.entrySet()) {
+            if (maxEntry == null || entry.getValue().size() > maxEntry.getValue().size()) {
                 maxEntry = entry;
             }
         }
-        if (maxEntry != null) {
+
+
+        if (maxEntry != null && spectrum[maxEntry.getValue().get(maxEntry.getValue().size() -1)] > 90) {
+            System.out.println(fundamentalsMap);
             float delta = 0;
             int pos = maxEntry.getKey();
             if (pos != -1) {
@@ -270,7 +307,7 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
                 }
                 delta = a * (this.spectrum[pos + a]) / (this.spectrum[pos + a] + this.spectrum[pos]);
             }
-            return (float) pos * this.audioInput.getInputBitRate() / this.dataChunkSize + delta;
+            return (float) (pos * this.audioInput.getInputBitRate() / this.dataChunkSize + delta * 44100f / 4096f);
         } else {
             return 0f;
         }
@@ -280,11 +317,18 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
 
     @Override
     public float getFundamentalFrequency() {
-        this.runFourierTransformation();
+        this.applyWindowFunction();
+        this.runFourierTransformation(true);
         this.generateSpectrum();
         this.calculateSpectrumPicks();
         this.calculateDominantFrequencies();
-        return this.calculateFundamentalFrequency();
+        fundamentalFrequency = this.calculateFundamentalFrequency();
+        return fundamentalFrequency;
+    }
+
+    @Override
+    public float getCurrentFundamentalFrequency() {
+        return this.fundamentalFrequency;
     }
 
     public float[] getSpectrum() {
