@@ -5,3 +5,4 @@ The main purpose of this github repository is to show how you can detect a pitch
 I will try to describe all the steps to achieve this in a simple manner.
 
 [![Build Status](https://travis-ci.org/undertext/pitch_detection.svg?branch=master)](https://travis-ci.org/undertext/pitch_detection)
+[![codecov](https://codecov.io/gh/undertext/pitch_detection/branch/master/graph/badge.svg)](https://codecov.io/gh/undertext/pitch_detection)
