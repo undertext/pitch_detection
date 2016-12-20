@@ -64,7 +64,7 @@ public class AccuracyReport {
                                 resultForFrequency.put("detected", fundamentalFrequency);
                                 resultForFrequency.put("deviation", fundamentalFrequency - freq);
                                 resultForFrequency.put("deviationPercents", Math.abs(fundamentalFrequency - freq) / freq);
-                                overallDeviation += fundamentalFrequency - freq;
+                                overallDeviation += Math.abs(fundamentalFrequency - freq);
                                 algorithmResults.add(resultForFrequency);
                             }
                         }
@@ -77,13 +77,21 @@ public class AccuracyReport {
 
             }
 
+            double overallDeviation = 0;
+            for (Double accuracy : algorithmDeviation.values()) {
+                overallDeviation += accuracy/ 6.0;
+            }
+
             fDetectorResult.put("class", frequencyDetectorClass.toString());
             fDetectorResult.put("res", algorithmData);
             fDetectorResult.put("deviations", algorithmDeviation);
+            fDetectorResult.put("overallDeviation", overallDeviation);
+
 
             fDetectorResults.add(fDetectorResult);
         }
         algorithmsResult.put("algs", fDetectorResults);
+
 
         Template template = freemarkerConfiguration.getTemplate("comprasion.ftlh");
         Writer out = new FileWriter("docs/comprasion.html");

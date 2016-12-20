@@ -46,6 +46,8 @@
         <div class="panel-footer">Overall deviation  <b> ${alg.deviations[key]}</b></div>
        </#list>
 </div>
+
+<b> Overall deviation ${alg.overallDeviation} </b>
  </#list>
 
 
