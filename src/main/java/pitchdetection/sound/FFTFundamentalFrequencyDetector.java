@@ -155,28 +155,29 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
         float minCandidate = Float.MAX_VALUE;
         int pos = 0;
 
+        float[] spectrum = this.getSpectrum();
 
-        for (int i = 0; i < this.spectrum.length; i++) {
+        for (int i = 0; i < spectrum.length; i++) {
 
-            if (this.spectrum[i] > maxCandidate) {
-                maxCandidate = this.spectrum[i];
+            if (spectrum[i] > maxCandidate) {
+                maxCandidate = spectrum[i];
                 pos = i;
             }
 
-            if (this.spectrum[i] < minCandidate) {
-                minCandidate = this.spectrum[i];
+            if (spectrum[i] < minCandidate) {
+                minCandidate = spectrum[i];
             }
 
-            if (this.spectrum[i] < maxCandidate - delta && findMax) {
+            if (spectrum[i] < maxCandidate - delta && findMax) {
 
-                if (getMax(Arrays.copyOfRange(this.spectrum, i, i + lookahead)) < maxCandidate) {
+                if (getMax(Arrays.copyOfRange(spectrum, i, i + lookahead)) < maxCandidate) {
                     if (spectrum[pos] > 50) {
                         maxPeaks.add(pos);
                     }
                     findMax = false;
                     maxCandidate = Float.MAX_VALUE;
                     minCandidate = Float.MAX_VALUE;
-                    if (i + lookahead > this.spectrum.length) {
+                    if (i + lookahead > spectrum.length) {
                         break;
                     }
                     continue;
@@ -184,13 +185,13 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
                 }
             }
 
-            if (this.spectrum[i] > minCandidate + delta && !findMax) {
+            if (spectrum[i] > minCandidate + delta && !findMax) {
 
-                if (getMin(Arrays.copyOfRange(this.spectrum, i, i + lookahead)) > minCandidate) {
+                if (getMin(Arrays.copyOfRange(spectrum, i, i + lookahead)) > minCandidate) {
                     findMax = true;
                     maxCandidate = Float.MIN_VALUE;
                     minCandidate = Float.MIN_VALUE;
-                    if (i + lookahead > this.spectrum.length) {
+                    if (i + lookahead > spectrum.length) {
                         break;
                     }
                     continue;
@@ -317,7 +318,6 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
 
     @Override
     public float getFundamentalFrequency() {
-        this.applyWindowFunction();
         this.runFourierTransformation(true);
         this.generateSpectrum();
         this.calculateSpectrumPicks();

@@ -8,6 +8,8 @@ import pitchdetection.sound.interfaces.AudioInputInterface;
 import pitchdetection.sound.interfaces.FourierBasedFundamentalFrequencyDetector;
 import pitchdetection.sound.interfaces.FundamentalFrequencyDetector;
 
+import static org.mockito.Mockito.*;
+
 public class FFTFundamentalFrequencyDetectorTest {
 
     @Test
@@ -37,5 +39,14 @@ public class FFTFundamentalFrequencyDetectorTest {
         float[][] result = frequencyDetector.runFourierTransformation(false);
         Assert.assertArrayEquals(result[0], outputReal, 0.1f);
         Assert.assertArrayEquals(result[1], outputImaginary, 0.1f);
+    }
+
+    @Test
+    public void testSpectrumPicks() {
+        FourierBasedFundamentalFrequencyDetector frequencyDetector = mock(FFTFundamentalFrequencyDetector.class);
+        when(frequencyDetector.calculateSpectrumPicks()).thenCallRealMethod();
+        when(frequencyDetector.getSpectrum()).thenReturn(new float[]{1, 2, 3, 4, 5, 5, 370, 140, 2, 70, 110, 400, 4, 3, 2, 1});
+        int[] result = frequencyDetector.calculateSpectrumPicks();
+        Assert.assertArrayEquals(result, new int[]{6, 11});
     }
 }
