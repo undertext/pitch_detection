@@ -146,8 +146,9 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
 
     @Override
     public int[] calculateSpectrumPicks() {
-        int delta = 50;
+        int delta = 30;
         int lookahead = 4;
+
         List<Integer> maxPeaks = new ArrayList();
         boolean findMax = true;
 
@@ -171,7 +172,7 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
             if (spectrum[i] < maxCandidate - delta && findMax) {
 
                 if (getMax(Arrays.copyOfRange(spectrum, i, i + lookahead)) < maxCandidate) {
-                    if (spectrum[pos] > 50) {
+                    if (spectrum[pos] > 60) {
                         maxPeaks.add(pos);
                     }
                     findMax = false;
@@ -256,8 +257,10 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
 
     private boolean isFundamental(int spectralPick, int funt, List<Integer> entry) {
         int last = entry.get(entry.size() - 1);
-        if ( Math.abs(spectralPick - last - funt) <= 1 ||  Math.abs(spectralPick - last - 2 * funt ) <=  1) {
-            return true;
+        if (Math.abs(spectralPick - last - funt) <= 1 || Math.abs(spectralPick - last - 2 * funt) <= 1) {
+            if (spectralPick <= 300) {
+                return true;
+            }
         }
 
         return false;
@@ -276,28 +279,35 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
                 }
             }
 
-            if (!isFundamentalFound) {
 
-                if (spectralPick < 30 && spectralPick > 10) {
-                    fundamentalsMap.put(spectralPick / 2 , new ArrayList());
-                    fundamentalsMap.get(spectralPick / 2).add(spectralPick/2);
-                    fundamentalsMap.get(spectralPick / 2).add(spectralPick);
-                }
-
-                fundamentalsMap.put(spectralPick , new ArrayList());
-                fundamentalsMap.get(spectralPick).add(spectralPick);
+            if (spectralPick < 30 && spectralPick > 10) {
+                fundamentalsMap.put(spectralPick / 2, new ArrayList());
+                fundamentalsMap.get(spectralPick / 2).add(spectralPick / 2);
+                fundamentalsMap.get(spectralPick / 2).add(spectralPick);
             }
+
+            fundamentalsMap.put(spectralPick, new ArrayList());
+            fundamentalsMap.get(spectralPick).add(spectralPick);
         }
 
         Map.Entry<Integer, List<Integer>> maxEntry = null;
+        int overtonesMinCount = 4;
         for (Map.Entry<Integer, List<Integer>> entry : fundamentalsMap.entrySet()) {
-            if (maxEntry == null || entry.getValue().size() > maxEntry.getValue().size()) {
+            if (maxEntry == null) {
                 maxEntry = entry;
+            } else {
+                if ((entry.getValue().size() >= maxEntry.getValue().size()) && entry.getValue().size() > overtonesMinCount) {
+                    maxEntry = entry;
+
+                }
             }
         }
 
+        if (maxEntry != null && maxEntry.getValue().size() <= overtonesMinCount) {
+            maxEntry = null;
+        }
 
-        if (maxEntry != null && spectrum[maxEntry.getValue().get(maxEntry.getValue().size() -1)] > 90) {
+        if (maxEntry != null && spectrum[maxEntry.getValue().get(maxEntry.getValue().size() - 1)] > 90) {
             System.out.println(fundamentalsMap);
             float delta = 0;
             int pos = maxEntry.getKey();
