@@ -27,7 +27,6 @@ public class TuneInfo {
 
     @Override
     public String toString() {
-        return "note " + note +
-                ", delta " + delta;
+        return String.format("%s %+.2f", note.name(), delta);
     }
 }
