@@ -16,7 +16,7 @@ public class DefaultGuitarTunerTest {
     @Test
     public void testTune() {
         FundamentalFrequencyDetector frequencyDetector = mock(FundamentalFrequencyDetector.class);
-        when(frequencyDetector.getFundamentalFrequency()).thenReturn(400f).thenReturn(206f).thenReturn(80f).thenReturn(0f);
+        when(frequencyDetector.getFundamentalFrequency()).thenReturn(400f).thenReturn(206f).thenReturn(240f).thenReturn(80f).thenReturn(0f);
         GuitarTuner tuner = new DefaultGuitarTuner(frequencyDetector);
         TuneInfo tuneInfo = tuner.tune();
         verify(frequencyDetector).getFundamentalFrequency();
@@ -28,11 +28,25 @@ public class DefaultGuitarTunerTest {
         Assert.assertEquals(tuneInfo.delta, 206f - GuitarNote.G3.getFrequency(), 0.01);
 
         tuneInfo = tuner.tune();
+        Assert.assertEquals(tuneInfo.note, GuitarNote.B3);
+        Assert.assertEquals(tuneInfo.delta, GuitarNote.B3.getFrequency() - 240f, 0.01);
+
+
+        tuneInfo = tuner.tune();
         Assert.assertEquals(tuneInfo.note, GuitarNote.E2);
         Assert.assertEquals(tuneInfo.delta, 80f - GuitarNote.E2.getFrequency(), 0.01);
 
         tuneInfo = tuner.tune();
         Assert.assertEquals(tuneInfo.note, GuitarNote.E2);
         Assert.assertEquals(tuneInfo.delta, 80f - GuitarNote.E2.getFrequency(), 0.01);
+    }
+
+    @Test
+    public void testFrequencyDetector() {
+        FundamentalFrequencyDetector frequencyDetector = mock(FundamentalFrequencyDetector.class);
+        GuitarTuner tuner = new DefaultGuitarTuner(frequencyDetector);
+        FundamentalFrequencyDetector newFrequencyDetector = mock(FundamentalFrequencyDetector.class);
+        tuner.setFrequencyDetector(newFrequencyDetector);
+        Assert.assertEquals(tuner.getFrequencyDetector(), newFrequencyDetector);
     }
 }
