@@ -1,5 +1,7 @@
 package pitchdetection.guitar;
 
+import java.util.Locale;
+
 /**
  * Contains real-time tune information.
  */
@@ -27,6 +29,6 @@ public class TuneInfo {
 
     @Override
     public String toString() {
-        return String.format("%s %+.2f", note.name(), delta);
+        return String.format(Locale.ROOT, "%s %+.2f", note.name(), delta);
     }
 }
