@@ -19,9 +19,19 @@ abstract class FundamentalFrequencyDetectorBase implements FundamentalFrequencyD
     protected AudioInputInterface audioInput;
 
     /**
+     * Frequency detector settings.
+     */
+    protected FFTFrequencyDetectorSettings frequencyDetectorSettings;
+
+    /**
      * Current chunk of data from audio input.
      */
     byte[] input;
+
+    public int getDataChunkSize() {
+        return dataChunkSize;
+    }
+
 
     @Override
     public void setAudioInput(AudioInputInterface audioInput) {
@@ -38,14 +48,17 @@ abstract class FundamentalFrequencyDetectorBase implements FundamentalFrequencyD
         return this.input;
     }
 
-
-    @Override
-    public int getDataChunkSize() {
-        return this.dataChunkSize;
+    public FFTFrequencyDetectorSettings getFrequencyDetectorSettings() {
+        return frequencyDetectorSettings;
     }
 
     @Override
     public void setDataChunkSize(int chunkSize) {
         this.dataChunkSize = chunkSize;
     }
+
+    public void setFrequencyDetectorSettings(FFTFrequencyDetectorSettings frequencyDetectorSettings) {
+        this.frequencyDetectorSettings = frequencyDetectorSettings;
+    }
+
 }

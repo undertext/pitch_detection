@@ -48,6 +48,9 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
      */
     public FFTFundamentalFrequencyDetector(AudioInputInterface audioInput, int dataChunkSize) {
         this.audioInput = audioInput;
+        FFTFrequencyDetectorSettings settings = new FFTFrequencyDetectorSettings();
+        this.setFrequencyDetectorSettings(settings);
+
         this.dataChunkSize = dataChunkSize;
         real = new float[dataChunkSize];
         imaginary = new float[dataChunkSize];
@@ -146,8 +149,8 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
 
     @Override
     public int[] calculateSpectrumPicks() {
-        int delta = 30;
-        int lookahead = 4;
+        int delta = this.getFrequencyDetectorSettings().getSpectrumPickDelta();
+        int lookAhead = this.getFrequencyDetectorSettings().getSpectrumPickLookAhead();
 
         List<Integer> maxPeaks = new ArrayList();
         boolean findMax = true;
@@ -158,7 +161,12 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
 
         float[] spectrum = this.getSpectrum();
 
-        for (int i = 0; i < spectrum.length; i++) {
+        int limit = this.getFrequencyDetectorSettings().getSpectrumObservablesCount();
+        if (limit > spectrum.length) {
+            limit = spectrum.length;
+        }
+
+        for (int i = 0; i < limit; i++) {
 
             if (spectrum[i] > maxCandidate) {
                 maxCandidate = spectrum[i];
@@ -171,14 +179,14 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
 
             if (spectrum[i] < maxCandidate - delta && findMax) {
 
-                if (getMax(Arrays.copyOfRange(spectrum, i, i + lookahead)) < maxCandidate) {
-                    if (spectrum[pos] > 60) {
+                if (getMax(Arrays.copyOfRange(spectrum, i, i + lookAhead)) < maxCandidate) {
+                    if (spectrum[pos] > this.getFrequencyDetectorSettings().getSpectrumPickMinAmplitude()) {
                         maxPeaks.add(pos);
                     }
                     findMax = false;
                     maxCandidate = Float.MAX_VALUE;
                     minCandidate = Float.MAX_VALUE;
-                    if (i + lookahead > spectrum.length) {
+                    if (i + lookAhead > spectrum.length) {
                         break;
                     }
                     continue;
@@ -188,11 +196,11 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
 
             if (spectrum[i] > minCandidate + delta && !findMax) {
 
-                if (getMin(Arrays.copyOfRange(spectrum, i, i + lookahead)) > minCandidate) {
+                if (getMin(Arrays.copyOfRange(spectrum, i, i + lookAhead)) > minCandidate) {
                     findMax = true;
                     maxCandidate = Float.MIN_VALUE;
                     minCandidate = Float.MIN_VALUE;
-                    if (i + lookahead > spectrum.length) {
+                    if (i + lookAhead > spectrum.length) {
                         break;
                     }
                     continue;
@@ -212,6 +220,11 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
             maxPeaksArray[i] = maxPeaks.get(i);
         }
         this.spectralPicksIndexes = maxPeaksArray;
+
+        if (this.getFrequencyDetectorSettings().isDebug()) {
+            System.out.println("Spectral picks indexes:" + spectralPicksIndexes);
+        }
+
         return maxPeaksArray;
     }
 
@@ -220,7 +233,7 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
         float[] dominantFrequencies = new float[length];
 
         for (int i = 0; i < spectralPicksIndexes.length; i++) {
-            dominantFrequencies[i] = (float) spectralPicksIndexes[i] * this.audioInput.getInputBitRate() / this.dataChunkSize;
+            dominantFrequencies[i] = (float) spectralPicksIndexes[i] * this.audioInput.getInputBitRate() / this.getDataChunkSize();
         }
 
         this.dominantFrequencies = dominantFrequencies;
@@ -257,8 +270,8 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
 
     private boolean isFundamental(int spectralPick, int funt, List<Integer> entry) {
         int last = entry.get(entry.size() - 1);
-        if (Math.abs(spectralPick - last - funt) <= 1 || Math.abs(spectralPick - last - 2 * funt) <= 1) {
-            if (spectralPick <= 300) {
+        if (Math.abs(spectralPick - last - funt) <= 2) {
+            if (spectralPick <= 200) {
                 return true;
             }
         }
@@ -280,45 +293,51 @@ public class FFTFundamentalFrequencyDetector extends FundamentalFrequencyDetecto
             }
 
 
-            if (spectralPick < 30 && spectralPick > 10) {
+   //         if (spectralPick < 30 && spectralPick > 10) {
                 fundamentalsMap.put(spectralPick / 2, new ArrayList());
                 fundamentalsMap.get(spectralPick / 2).add(spectralPick / 2);
                 fundamentalsMap.get(spectralPick / 2).add(spectralPick);
-            }
+     //       }
 
             fundamentalsMap.put(spectralPick, new ArrayList());
             fundamentalsMap.get(spectralPick).add(spectralPick);
         }
 
         Map.Entry<Integer, List<Integer>> maxEntry = null;
-        int overtonesMinCount = 4;
         for (Map.Entry<Integer, List<Integer>> entry : fundamentalsMap.entrySet()) {
             if (maxEntry == null) {
                 maxEntry = entry;
             } else {
-                if ((entry.getValue().size() >= maxEntry.getValue().size()) && entry.getValue().size() > overtonesMinCount) {
+                if ((entry.getValue().size() >= maxEntry.getValue().size()) && entry.getValue().size() >  this.getFrequencyDetectorSettings().getOvertoneMinCount()) {
                     maxEntry = entry;
 
                 }
             }
         }
 
-        if (maxEntry != null && maxEntry.getValue().size() <= overtonesMinCount) {
+        if (maxEntry != null && maxEntry.getValue().size() <= this.getFrequencyDetectorSettings().getOvertoneMinCount()) {
+            maxEntry = null;
+        }
+
+        if (this.spectralPicksIndexes.length > 30) {
             maxEntry = null;
         }
 
         if (maxEntry != null && spectrum[maxEntry.getValue().get(maxEntry.getValue().size() - 1)] > 90) {
-            System.out.println(fundamentalsMap);
+            if (this.frequencyDetectorSettings.isDebug()) {
+                System.out.println("Fundamentals map: " + fundamentalsMap);
+            }
+
             float delta = 0;
-            int pos = maxEntry.getKey();
+            int pos = maxEntry.getValue().get(maxEntry.getValue().size() - 1);
             if (pos != -1) {
                 int a = -1;
                 if (this.spectrum[pos + 1] > this.spectrum[pos - 1]) {
                     a = 1;
                 }
-                delta = a * (this.spectrum[pos + a]) / (this.spectrum[pos + a] + this.spectrum[pos]);
+                //         delta = a * (this.spectrum[pos + a]) / (this.spectrum[pos + a] + this.spectrum[pos]);
             }
-            return (float) (pos * this.audioInput.getInputBitRate() / this.dataChunkSize + delta * 44100f / 4096f);
+            return (float) (pos * this.audioInput.getInputBitRate() / this.getDataChunkSize() / maxEntry.getValue().size());
         } else {
             return 0f;
         }

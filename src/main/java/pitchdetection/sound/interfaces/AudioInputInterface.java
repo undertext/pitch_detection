@@ -18,6 +18,11 @@ public interface AudioInputInterface {
     void startRecording();
 
     /**
+     * Close audio input line and stop recording data.
+     */
+    void stopRecording();
+
+    /**
      * Read given count of bytes from audio input line.
      *
      * @param bytesCount Count of bytes to read from audio input line.

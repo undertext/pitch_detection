@@ -6,6 +6,7 @@ import pitchdetection.sound.interfaces.AudioInputInterface;
  * Class for simulating sound input.
  * <p>
  * Used for testing reasons.
+ * @todo Do we actually need this?
  */
 public class FakeAudioInput implements AudioInputInterface {
 
@@ -49,6 +50,11 @@ public class FakeAudioInput implements AudioInputInterface {
 
     @Override
     public void startRecording() {
+
+    }
+
+    @Override
+    public void stopRecording() {
 
     }
 

@@ -9,6 +9,16 @@ import pitchdetection.sound.interfaces.FundamentalFrequencyDetector;
 public interface GuitarTuner {
 
     /**
+     * Start the tuner.
+     */
+    public void start();
+
+    /**
+     * Stop the tuner.
+     */
+    public void stop();
+
+    /**
      * Get frequency detector.
      *
      * @return Frequency detector.

@@ -65,6 +65,12 @@ public class MicrophoneAudioInput implements AudioInputInterface {
     }
 
     @Override
+    public void stopRecording() {
+        this.line.stop();
+        this.line.flush();
+    }
+
+    @Override
     public byte[] readData(int bytesCount) {
         byte[] data = new byte[bytesCount];
         this.line.read(data, 0, bytesCount);

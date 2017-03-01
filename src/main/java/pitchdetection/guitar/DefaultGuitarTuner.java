@@ -19,6 +19,16 @@ public class DefaultGuitarTuner implements GuitarTuner {
     private FundamentalFrequencyDetector frequencyDetector;
 
     @Override
+    public void start() {
+        this.frequencyDetector.getAudioInput().startRecording();
+    }
+
+    @Override
+    public void stop() {
+        this.frequencyDetector.getAudioInput().stopRecording();
+    }
+
+    @Override
     public FundamentalFrequencyDetector getFrequencyDetector() {
         return frequencyDetector;
     }
