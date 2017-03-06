@@ -9,7 +9,6 @@ import pitchdetection.guitar.interfaces.GuitarTuner;
 import pitchdetection.sound.FFTFundamentalFrequencyDetector;
 import pitchdetection.sound.FakeAudioInput;
 import pitchdetection.sound.WavFileAudioInput;
-import pitchdetection.sound.YINFundamentalFrequencyDetector;
 import pitchdetection.sound.interfaces.AudioInputInterface;
 import pitchdetection.sound.interfaces.FundamentalFrequencyDetector;
 
