@@ -104,6 +104,11 @@ public class WavFileAudioInput implements AudioInputInterface {
     }
 
     @Override
+    public void stopRecording() {
+
+    }
+
+    @Override
     public byte[] readData(int bytesCount) {
         byte[] result = new byte[bytesCount];
 
